@@ -88,6 +88,9 @@ public class App {
             Terminal terminal = TerminalBuilder.builder().system(true).build();
             LineReader reader = LineReaderBuilder.builder()
                     .terminal(terminal)
+                    .option(LineReader.Option.DISABLE_EVENT_EXPANSION, true) // fixes ! issue
+                    .option(LineReader.Option.AUTO_REMOVE_SLASH, false) // keep slashes
+                    .option(LineReader.Option.INSERT_TAB, true) // optional
                     .build();
 
             // 🔹 Input thread
@@ -148,6 +151,9 @@ public class App {
 
             LineReader chatReader = LineReaderBuilder.builder()
                     .terminal(terminal)
+                    .option(LineReader.Option.DISABLE_EVENT_EXPANSION, true)
+                    .option(LineReader.Option.AUTO_REMOVE_SLASH, false)
+                    .option(LineReader.Option.INSERT_TAB, true)
                     .build();
 
             initiateChatSession(chatReader);
@@ -173,7 +179,7 @@ public class App {
                 while ((message = in.readLine()) != null) {
 
                     // 🔥 Handle remote exit
-                    if (message.equalsIgnoreCase("!exit")) {
+                    if (message.equalsIgnoreCase("/exit")) {
                         System.out.println(RED + "Peer disconnected!" + END);
                         cleanupAndExit();
                     }
@@ -211,13 +217,13 @@ public class App {
                 continue;
 
             // 🔥 LOCAL EXIT
-            if (message.equalsIgnoreCase("!exit")) {
-                out.println("!exit");
+            if (message.equalsIgnoreCase("/exit")) {
+                out.println("/exit");
                 cleanupAndExit();
                 return;
             }
 
-            if (message.startsWith("!image ")) {
+            if (message.startsWith("/image ")) {
                 String imagePath = message.substring(7).trim();
                 File imgFile = new File(imagePath);
 
@@ -237,7 +243,7 @@ public class App {
                         messages.add(new Message(MSG_LOCAL, "Sent an image"));
                     }
 
-                    out.println("!image " + base64Image);
+                    out.println("/image " + base64Image);
                     continue;
                 } catch (IOException e) {
                     messages.add(new Message(MSG_LOCAL, RED + "Failed to encode image!" + END));
