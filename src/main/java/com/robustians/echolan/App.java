@@ -221,6 +221,8 @@ public class App {
                 String imagePath = message.substring(7).trim();
                 File imgFile = new File(imagePath);
 
+                messages.add(new Message(MSG_LOCAL, imagePath));
+
                 if (!imgFile.exists() || !imgFile.isFile()) {
                     messages.add(new Message(MSG_LOCAL, RED + "Invalid image path!" + END));
                     continue;
