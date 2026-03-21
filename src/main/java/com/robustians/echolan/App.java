@@ -10,13 +10,9 @@ import com.robustians.encoding.Bip39Handler;
 import com.robustians.utils.CLI;
 import com.robustians.utils.NetworkSelector;
 
-// 🔥 JLINE IMPORTS
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
-import org.jline.reader.EndOfFileException;
-import org.jline.reader.LineReader;
-import org.jline.reader.LineReaderBuilder;
-import org.jline.reader.UserInterruptException;
+import org.jline.reader.*;
 
 public class App {
     private static int SERVER_PORT = 60000;
@@ -66,7 +62,7 @@ public class App {
         localIpWords = bip39Handler.ipToWords(localIp);
     }
 
-    private static void connectToServer(String remoteMagicAddress) throws IOException, IllegalArgumentException {
+    private static void connectToServer(String remoteMagicAddress) throws IOException {
         clientSocket = new Socket(bip39Handler.wordsToIp(remoteMagicAddress), SERVER_PORT);
     }
 
@@ -103,6 +99,8 @@ public class App {
                         userInput[0] = line;
                         done.set(true);
                     }
+                } catch (UserInterruptException | EndOfFileException e) {
+                    // normal exit
                 } catch (Exception ignored) {
                 }
             });
@@ -116,9 +114,6 @@ public class App {
                         connected.set(true);
                         done.set(true);
 
-                        // 🔥 Interrupt input instantly
-                        terminal.raise(Terminal.Signal.INT);
-
                         safePrintln("\nClient connected: " +
                                 socket.getInetAddress().getHostAddress());
                     } else {
@@ -131,6 +126,7 @@ public class App {
             inputThread.start();
             acceptThread.start();
 
+            // Wait until one finishes
             while (!done.get()) {
                 Thread.sleep(50);
             }
@@ -148,14 +144,18 @@ public class App {
                     System.exit(1);
                 } catch (IllegalArgumentException e) {
                     safePrintln(RED + "\nInvalid magic address: " + userInput[0] + END);
-                    System.exit(1); 
+                    System.exit(1);
                 }
             }
 
-            initiateChatSession(reader);
-        } catch (UserInterruptException e) {
-            System.exit(0);
-        } catch (EndOfFileException s) {
+            // 🔥 IMPORTANT: create NEW reader for chat session
+            LineReader chatReader = LineReaderBuilder.builder()
+                    .terminal(terminal)
+                    .build();
+
+            initiateChatSession(chatReader);
+
+        } catch (UserInterruptException | EndOfFileException e) {
             System.exit(0);
         }
     }
@@ -185,11 +185,17 @@ public class App {
             }
         }).start();
 
-        // Sending messages thread
+        // Sending messages loop
         while (true) {
             redraw(remoteHostAddress);
 
-            String message = reader.readLine();
+            String message;
+            try {
+                message = reader.readLine();
+            } catch (UserInterruptException | EndOfFileException e) {
+                break;
+            }
+
             if (message == null || message.trim().isEmpty()) {
                 continue;
             }
