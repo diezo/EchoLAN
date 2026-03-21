@@ -72,7 +72,6 @@ public class App {
 
     public static void main(String[] args) throws Exception {
         try {
-            SERVER_PORT = Integer.parseInt(args[0]);
             CLI.clear();
 
             bip39Handler = new Bip39Handler();
