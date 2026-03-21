@@ -136,6 +136,11 @@ public class App {
             }
 
             if (!connected.get()) {
+                if (userInput[0] == localIpWords) {
+                    safePrintln(RED + "\nCannot connect to yourself!" + END);
+                    System.exit(1);
+                }
+                
                 try {
                     connectToServer(userInput[0]);
                 } catch (IOException e) {
