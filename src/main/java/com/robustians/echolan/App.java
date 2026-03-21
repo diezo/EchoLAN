@@ -222,7 +222,7 @@ public class App {
                 File imgFile = new File(imagePath);
 
                 if (!imgFile.exists() || !imgFile.isFile()) {
-                    safePrintln(RED + "Invalid image path!" + END);
+                    messages.add(new Message(MSG_LOCAL, RED + "Invalid image path!" + END));
                     continue;
                 }
 
@@ -238,7 +238,7 @@ public class App {
                     out.println("/image " + base64Image);
                     continue;
                 } catch (IOException e) {
-                    safePrintln(RED + "Failed to encode image!" + END);
+                    messages.add(new Message(MSG_LOCAL, RED + "Failed to encode image!" + END));
                     continue;
                 }
             }
