@@ -17,7 +17,6 @@ import org.jline.reader.*;
 public class App {
     private static int SERVER_PORT = 60000;
 
-    private static final String BLUE = "\u001B[34m";
     private static final String GREEN = "\u001B[32m";
     private static final String RED = "\u001B[31m";
     private static final String YELLOW = "\u001B[33m";
@@ -85,7 +84,6 @@ public class App {
             AtomicBoolean done = new AtomicBoolean(false);
             final String[] userInput = new String[1];
 
-            // 🔥 Setup JLine
             Terminal terminal = TerminalBuilder.builder().system(true).build();
             LineReader reader = LineReaderBuilder.builder()
                     .terminal(terminal)
@@ -100,7 +98,7 @@ public class App {
                         done.set(true);
                     }
                 } catch (UserInterruptException | EndOfFileException e) {
-                    // normal exit
+                    cleanupAndExit();
                 } catch (Exception ignored) {
                 }
             });
@@ -126,7 +124,6 @@ public class App {
             inputThread.start();
             acceptThread.start();
 
-            // Wait until one finishes
             while (!done.get()) {
                 Thread.sleep(50);
             }
@@ -148,7 +145,6 @@ public class App {
                 }
             }
 
-            // 🔥 IMPORTANT: create NEW reader for chat session
             LineReader chatReader = LineReaderBuilder.builder()
                     .terminal(terminal)
                     .build();
@@ -156,7 +152,7 @@ public class App {
             initiateChatSession(chatReader);
 
         } catch (UserInterruptException | EndOfFileException e) {
-            System.exit(0);
+            cleanupAndExit();
         }
     }
 
@@ -168,24 +164,32 @@ public class App {
 
         String remoteHostAddress = clientSocket.getInetAddress().getHostAddress();
 
-        // Incoming messages thread
+        // 🔹 Incoming thread
         new Thread(() -> {
             try {
                 String message;
 
                 while ((message = in.readLine()) != null) {
+
+                    // 🔥 Handle remote exit
+                    if (message.equalsIgnoreCase("/exit")) {
+                        System.out.println(RED + "\nPeer disconnected." + END);
+                        cleanupAndExit();
+                    }
+
                     synchronized (messages) {
                         messages.add(new Message(MSG_REMOTE, message));
                     }
+
                     redraw(remoteHostAddress);
                 }
             } catch (IOException ignored) {
                 System.out.println(RED + "Connection lost!" + END);
-                System.exit(0);
+                cleanupAndExit();
             }
         }).start();
 
-        // Sending messages loop
+        // 🔹 Sending loop
         while (true) {
             redraw(remoteHostAddress);
 
@@ -193,12 +197,25 @@ public class App {
             try {
                 message = reader.readLine();
             } catch (UserInterruptException | EndOfFileException e) {
-                break;
+                cleanupAndExit();
+                return;
             }
 
-            if (message == null || message.trim().isEmpty()) {
+            if (message == null)
                 continue;
+
+            message = message.trim();
+
+            // 🔥 LOCAL EXIT
+            if (message.equalsIgnoreCase("/exit")) {
+                out.println("/exit");
+                System.out.println(RED + "Exiting chat..." + END);
+                cleanupAndExit();
+                return;
             }
+
+            if (message.isEmpty())
+                continue;
 
             synchronized (messages) {
                 messages.add(new Message(MSG_LOCAL, message));
@@ -233,5 +250,19 @@ public class App {
             System.out.println(YELLOW + "--------------------------------------------------\n" + END);
             System.out.print("Message: ");
         }
+    }
+
+    private static void cleanupAndExit() {
+        try {
+            if (clientSocket != null && !clientSocket.isClosed()) {
+                clientSocket.close();
+            }
+            if (serverSocket != null && !serverSocket.isClosed()) {
+                serverSocket.close();
+            }
+        } catch (IOException ignored) {
+        }
+
+        System.exit(0);
     }
 }
