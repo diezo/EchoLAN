@@ -186,12 +186,12 @@ public class App {
                 while ((message = in.readLine()) != null) {
 
                     // 🔥 Handle remote exit
-                    if (message.equalsIgnoreCase("/exit")) {
+                    if (message.equalsIgnoreCase(".exit")) {
                         System.out.println(RED + "Peer disconnected!" + END);
                         cleanupAndExit();
                     }
 
-                    if (message.startsWith("/image ")) {
+                    if (message.startsWith(".image ")) {
                         String base64Image = message.substring(7).trim();
                         showImage(base64Image);
 
@@ -236,13 +236,13 @@ public class App {
                 continue;
 
             // 🔥 LOCAL EXIT
-            if (message.equalsIgnoreCase("/exit")) {
-                out.println("/exit");
+            if (message.equalsIgnoreCase(".exit")) {
+                out.println(".exit");
                 cleanupAndExit();
                 return;
             }
 
-            if (message.startsWith("/image ")) {
+            if (message.startsWith(".image ")) {
                 String imagePath = message.substring(7).trim();
                 if ((imagePath.startsWith("\"") && imagePath.endsWith("\""))
                         || (imagePath.startsWith("'") && imagePath.endsWith("'"))) {
@@ -264,7 +264,7 @@ public class App {
                         messages.add(new Message(MSG_LOCAL, "Sent an image"));
                     }
 
-                    out.println("/image " + base64Image);
+                    out.println(".image " + base64Image);
                     continue;
                 } catch (IOException e) {
                     messages.add(new Message(MSG_LOCAL, RED + "Failed to encode image!" + END));
