@@ -1,0 +1,4 @@
+- Detect appropriate network interface reliably without degrading UX
+- Integrating Java Server with Website
+- Setting up Maven for this project
+- Encoding IP addresses using Wordlists
