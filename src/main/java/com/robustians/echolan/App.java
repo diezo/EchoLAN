@@ -196,7 +196,7 @@ public class App {
                         showImage(base64Image);
 
                         synchronized (messages) {
-                            messages.add(new Message(MSG_REMOTE, "Sent an image"));
+                            messages.add(new Message(MSG_REMOTE, "Received an image"));
                         }
 
                         redraw(remoteHostAddress);
