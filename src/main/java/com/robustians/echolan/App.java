@@ -173,7 +173,7 @@ public class App {
 
                     // 🔥 Handle remote exit
                     if (message.equalsIgnoreCase("/exit")) {
-                        System.out.println(RED + "Peer disconnected." + END);
+                        System.out.println(RED + "Peer disconnected!" + END);
                         cleanupAndExit();
                     }
 
