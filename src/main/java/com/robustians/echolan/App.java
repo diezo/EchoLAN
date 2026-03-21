@@ -2,6 +2,7 @@ package com.robustians.echolan;
 
 import java.io.*;
 import java.net.*;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -206,6 +207,9 @@ public class App {
 
             message = message.trim();
 
+            if (message.isEmpty())
+                continue;
+
             // 🔥 LOCAL EXIT
             if (message.equalsIgnoreCase("/exit")) {
                 out.println("/exit");
@@ -213,8 +217,31 @@ public class App {
                 return;
             }
 
-            if (message.isEmpty())
-                continue;
+            if (message.startsWith("/image ")) {
+                String imagePath = message.substring(7).trim();
+                File imgFile = new File(imagePath);
+
+                if (!imgFile.exists() || !imgFile.isFile()) {
+                    safePrintln(RED + "Invalid image path!" + END);
+                    continue;
+                }
+
+                try {
+                    // 🔥 Encode image and send as message
+                    byte[] imageBytes = Files.readAllBytes(imgFile.toPath());
+                    String base64Image = Base64.getEncoder().encodeToString(imageBytes);
+
+                    synchronized (messages) {
+                        messages.add(new Message(MSG_LOCAL, "Sent an image"));
+                    }
+
+                    out.println("/image " + base64Image);
+                    continue;
+                } catch (IOException e) {
+                    safePrintln(RED + "Failed to encode image!" + END);
+                    continue;
+                }
+            }
 
             synchronized (messages) {
                 messages.add(new Message(MSG_LOCAL, message));
