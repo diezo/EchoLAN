@@ -1,10 +1,17 @@
 package com.robustians.echolan;
 
+import java.awt.BorderLayout;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.*;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 
 import com.robustians.echolan.model.*;
 import com.robustians.encoding.Bip39Handler;
@@ -184,6 +191,18 @@ public class App {
                         cleanupAndExit();
                     }
 
+                    if (message.startsWith("/image ")) {
+                        String base64Image = message.substring(7).trim();
+                        showImage(base64Image);
+
+                        synchronized (messages) {
+                            messages.add(new Message(MSG_REMOTE, "Sent an image"));
+                        }
+
+                        redraw(remoteHostAddress);
+                        continue;
+                    }
+
                     synchronized (messages) {
                         messages.add(new Message(MSG_REMOTE, message));
                     }
@@ -225,9 +244,11 @@ public class App {
 
             if (message.startsWith("/image ")) {
                 String imagePath = message.substring(7).trim();
+                if ((imagePath.startsWith("\"") && imagePath.endsWith("\""))
+                        || (imagePath.startsWith("'") && imagePath.endsWith("'"))) {
+                    imagePath = imagePath.substring(1, imagePath.length() - 1).trim();
+                }
                 File imgFile = new File(imagePath);
-
-                messages.add(new Message(MSG_LOCAL, imagePath));
 
                 if (!imgFile.exists() || !imgFile.isFile()) {
                     messages.add(new Message(MSG_LOCAL, RED + "Invalid image path!" + END));
@@ -257,6 +278,35 @@ public class App {
 
             out.println(message);
             redraw(remoteHostAddress);
+        }
+    }
+
+    private static void showImage(String base64) {
+        try {
+            // 1. Decode Base64
+            byte[] imageBytes = Base64.getDecoder().decode(base64);
+
+            // 2. Convert to BufferedImage
+            BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageBytes));
+
+            if (image == null) {
+                System.out.println("Invalid image data!");
+                return;
+            }
+
+            // 3. Show in window
+            JFrame frame = new JFrame("Received Image");
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+            JLabel label = new JLabel(new ImageIcon(image));
+            frame.getContentPane().add(label, BorderLayout.CENTER);
+
+            frame.pack();
+            frame.setLocationRelativeTo(null);
+            frame.setVisible(true);
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
