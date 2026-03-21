@@ -138,6 +138,7 @@ public class App {
             if (!connected.get()) {
                 System.out.println(userInput[0]);
                 System.out.println(localIpWords);
+                System.exit(1);
                 if (userInput[0] == localIpWords) {
                     safePrintln(RED + "\nCannot connect to yourself!" + END);
                     System.exit(1);
