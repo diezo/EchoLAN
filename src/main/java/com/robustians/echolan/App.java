@@ -173,7 +173,7 @@ public class App {
 
                     // 🔥 Handle remote exit
                     if (message.equalsIgnoreCase("/exit")) {
-                        System.out.println(RED + "\nPeer disconnected." + END);
+                        System.out.println(RED + "Peer disconnected." + END);
                         cleanupAndExit();
                     }
 
@@ -209,7 +209,6 @@ public class App {
             // 🔥 LOCAL EXIT
             if (message.equalsIgnoreCase("/exit")) {
                 out.println("/exit");
-                System.out.println(RED + "Exiting chat..." + END);
                 cleanupAndExit();
                 return;
             }
