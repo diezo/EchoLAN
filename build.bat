@@ -1,1 +1,1 @@
-jpackage --input target --name EchoLAN --main-jar echolan-1.0-SNAPSHOT.jar --main-class com.robustians.echolan.App --type exe --win-console
+jpackage --input target --name echolan --main-jar echolan.jar --main-class com.robustians.echolan.App --type exe --win-console --java-options "--enable-native-access=ALL-UNNAMED"
